@@ -4,8 +4,6 @@ const http = require("http")
 const url = require('url');
 
 const server = http.createServer((req, res) => {
-
-    if (req.method === 'GET'){
         
 	res.statusCode = 200;
         res.setHeader('Content-Type', 'application/text');
