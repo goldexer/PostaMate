@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Postal Server</title>
+    <link rel="stylesheet" href="authorization.css">
+</head>
+<body>
+    <div id="containerMain">
+        <h1>Авторизация</h1>
+        <br><br><hr>
+        <input id="txtUsername" type="text" name="username" placeholder="Имя пользователя">
+        <br>
+        <input id="txtUserpass" type="password" name="userpass" placeholder="Пароль">
+        <br>
+        <button type="submit" id="buttonSubmit" onclick="submitLogon()">Войти</button>
+        <br>
+        <p>Ещё не зарегистрированы? <a href="Register.html">Регистрация</a></p>
+        <p class="fail" id="messageError"></p>
+    </div>
+
+    <script>
+        function submitLogon() {
+            //------------------------------ Validation -------------------------------------
+
+            if (txtUsername.value.length < 2 || txtUserpass.value.length < 6) {
+                alert("Имя пользователя должно быть не короче 2 символов \n\r Пароль должен быть не короче 6 символов!")
+                return false;
+            }
+
+            //-------------------------- send info on server --------------------------------
+            txtUsername.disabled = true; txtUserpass.disabled = true; buttonSubmit.disabled = true
+            buttonSubmit.innerText = "Ожидание ответа..."
+
+            const response = fetch(`/processLog?username=${txtUsername.value}&userpass=${txtUserpass.value}`)
+
+            response.then( async (response)=> {
+
+                if (response.status === 200 && response.headers.get('Content-Type') === 'application/json') {
+                    const responseData = await response.json()
+
+                    if (responseData.error === 'denied') {
+
+                        messageError.innerText = "Пользователь не найден или данные не верны!"
+                        messageError.style.transition = ""
+                        messageError.style.opacity = "1"
+
+                        setTimeout( () => {
+                            messageError.style.transition = "opacity .3s linear"
+                            messageError.style.opacity = "0"
+                        }, 3000 )
+
+                        txtUsername.disabled = false; txtUserpass.disabled = false; buttonSubmit.disabled = false
+                        buttonSubmit.innerText = "Войти"
+
+                        return false;
+                    }
+
+                    console.log("Успех! Токен = " + responseData.token)
+                    window.location.href = "/Cabinet.html"
+                } else {
+                    alert(`Status: ${response.status} \n\r RespText: ${response.statusText}`)
+                    window.location.href = "/Register.html"
+                }
+            })
+        }
+    </script>
+</body>
+</html>
